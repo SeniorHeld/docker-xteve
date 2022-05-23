@@ -1,10 +1,10 @@
-FROM ubuntu:latest
+FROM jrottenberg/ffmpeg:4.4-nvidia
 RUN apt update
 RUN apt upgrade -y
 RUN apt install ca-certificates -y
 
 # Extras
-RUN apt install curl wget unzip -y
+RUN apt install curl wget unzip -y --no-install-recommends -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Timezone (TZ)
 RUN apt update && apt install tzdata -y
@@ -19,8 +19,11 @@ VOLUME /config
 VOLUME /root/.xteve
 VOLUME /tmp/xteve
 
-# Add ffmpeg and vlc
-RUN apt install ffmpeg -y
+# Add ffmpeg 
+#RUN apt install ffmpeg -y
+
+
+# Add vlc
 #RUN apt install vlc -y
 #RUN sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
@@ -38,4 +41,4 @@ RUN chmod +x /usr/bin/xteve
 EXPOSE 34400
 
 # Entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["bash", "/entrypoint.sh"]

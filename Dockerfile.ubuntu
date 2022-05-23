@@ -1,0 +1,38 @@
+FROM jrottenberg/ffmpeg:4.4-ubuntu
+ARG TARGETPLATFORM
+
+RUN apt update
+RUN apt upgrade -y
+RUN apt install ca-certificates -y
+
+# Extras
+RUN apt install curl wget unzip -y --no-install-recommends -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Timezone (TZ)
+RUN apt update && apt install tzdata -y
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Add Bash shell & dependancies
+RUN apt install bash -y
+
+# Volumes
+VOLUME /config
+VOLUME /root/.xteve
+VOLUME /tmp/xteve
+
+# Add xTeve
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=arm64; fi; \
+    wget "https://github.com/xteve-project/xTeVe-Downloads/raw/master/xteve_linux_$ARCHITECTURE.zip" -O temp.zip; unzip temp.zip -d /usr/bin/; rm temp.zip
+ADD entrypoint.sh /
+
+# Set executable permissions
+RUN chmod +x /entrypoint.sh
+#RUN chmod +x /cronjob.sh
+RUN chmod +x /usr/bin/xteve
+
+# Expose Port
+EXPOSE 34400
+
+# Entrypoint
+ENTRYPOINT ["bash", "/entrypoint.sh"]
